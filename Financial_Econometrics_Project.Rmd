@@ -1,0 +1,17 @@
+---
+title: "Financial Econometrics Report"
+output: word_document
+---
+
+```{r setoptions, echo=F}
+library(knitr)
+opts_chunk$set(echo = T, results = "markup")
+```
+
+## 1. Data Loading and Viewing
+```{r}
+Data <- read.csv("suicide.csv",header = TRUE)
+head(Data)
+```
+
+## 2. Data Processing

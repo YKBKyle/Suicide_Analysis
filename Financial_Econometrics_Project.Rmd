@@ -8,10 +8,81 @@ library(knitr)
 opts_chunk$set(echo = T, results = "markup")
 ```
 
+Questions:
+1) Whether the suicide rate is a random walk for every country? - Autoregression
+2) Whether the suicide rate of one age-group is associated with that of another age-group? - Multiple Linear Regression
+3) Whether the suicide rate of one generation is associated with that of another generation? - Multiple Linear Regression
+
+
+
+Research Question: What factors influence the Suicide Number worldwide?
+
+Motivation: In the past decades, suicide number was always an important and serious topic. People would say that, as the living condition becoming better and better, the suicide number will go down. On the other hand, while economy developing fast, living pressure increase fast, suicide number will go up. Based on those arguments, our research team wants to figure out what factors indeed influence the suicide number worldwide. 
+
+Based on the data set describing suicide number, the potential factors are country, year, sex, age, population, GDP related factors such as GDP for the year, GDP per capita and generation.  After discussion, our basic logic is that run the simple linear and multilinear regression, to find out the correlation. Beyond that, we will fix several factors, and check out the patterns of the output, which is the suicide number. To choose the fixing factors, we will divide data based on different significant characteristics such as country and generations.
+
 ## 1. Data Loading and Viewing
 ```{r}
 Data <- read.csv("suicide.csv",header = TRUE)
-head(Data)
+str(Data)
 ```
 
 ## 2. Data Processing
+### 2.1 Correct data type: gdp_for_year
+```{r}
+Data$gdp_for_year.... <- as.numeric(gsub(",","",as.character(Data$gdp_for_year....)))
+```
+
+### 2.2 Check: Column country + Column year = Column country.year
+```{r}
+country <- as.character(Data$country)
+year <- as.character(Data$year)
+country.year <- as.character(Data$country.year)
+country_year <- paste0(country,year)
+identical(country.year,country_year)
+```
+
+### 2.3 Since Column country + Column year = Column country.year, delete country.year
+```{r}
+Loc <- grep("country.year",names(Data))
+Data <- Data[,-Loc]
+```
+
+## 3. Data Exploration
+### 3.1 
+```{r}
+Suicides_CountryYear <- aggregate(suicides_no ~ country + year, data = Data, sum)
+Suicides_year <- aggregate(suicides_no ~ year, data = Data, sum)
+
+Suicides_CountryYear <- aggregate(suicides.100k.pop ~ country + year, data = Data, sum)
+
+AllCountry <- unique(Data$country)
+
+Logical <- Suicides_CountryYear$country %in% "United States"
+Suicides_USAYear <- Suicides_CountryYear[Logical,]
+plot(Suicides_CountryYear$year, Suicides_CountryYear$suicides.100k.pop)
+
+
+
+
+library(lattice)
+xyplot(suicides_no ~ year | country, data = Data)
+```
+
+## 4. Autoregression
+(AR, MA, ARMA) + (country, country+age, country+generation, generation, age)
+
+### 4.1 Autoregression on global suicides rate from 1985 to 2016
+```{r}
+SuicideRate_Y <- aggregate(suicides.100k.pop ~ year, data = Data, mean)
+plot(SuicideRate_Y$year, SuicideRate_Y$suicides.100k.pop, xlab = "year", ylab = "suicides.100k.pop")
+AR_Y <- ar.ols(SuicideRate_Y$suicides.100k.pop, demean = F, intercept = T, order.max = 3)
+AR_Y
+```
+
+
+
+### 4.2 AR, country
+```{r}
+SuicideRate_CY <- aggregate(suicides.100k.pop ~ country + year, data = Data, sum)
+```
